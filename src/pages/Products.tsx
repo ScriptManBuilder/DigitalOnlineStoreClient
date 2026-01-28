@@ -12,6 +12,7 @@ import {
   ProductPrice,
   BuyButton
 } from '../styles/Products.styles';
+import ProductDetailModal from '../components/ProductDetailModal';
 import { productsAPI } from '../services/api';
 import type { Product } from '../services/api';
 
@@ -20,27 +21,12 @@ const getRandomColor = () => {
   return colors[Math.floor(Math.random() * colors.length)];
 };
 
-const getProductIcon = (name: string) => {
-  const lowercaseName = name.toLowerCase();
-  
-  if (lowercaseName.includes('photo') || lowercaseName.includes('camera')) return '📷';
-  if (lowercaseName.includes('design') || lowercaseName.includes('template')) return '🎨';
-  if (lowercaseName.includes('book') || lowercaseName.includes('guide') || lowercaseName.includes('ebook')) return '📚';
-  if (lowercaseName.includes('music') || lowercaseName.includes('audio')) return '🎵';
-  if (lowercaseName.includes('video') || lowercaseName.includes('film')) return '🎬';
-  if (lowercaseName.includes('business') || lowercaseName.includes('plan')) return '💼';
-  if (lowercaseName.includes('marketing') || lowercaseName.includes('analytics')) return '📊';
-  if (lowercaseName.includes('code') || lowercaseName.includes('programming')) return '💻';
-  if (lowercaseName.includes('game')) return '🎮';
-  if (lowercaseName.includes('art')) return '🖼️';
-  
-  return '📦';
-};
-
 function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     loadProducts();
@@ -58,6 +44,21 @@ function Products() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => setSelectedProduct(null), 300);
+  };
+
+  const handleBuyClick = (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation();
+    handleProductClick(product);
   };
 
   if (loading) {
@@ -92,21 +93,37 @@ function Products() {
       <PageTitle>Our Digital Products</PageTitle>
       <ProductsGrid>
         {products.map((product) => (
-          <ProductCard key={product.id}>
+          <ProductCard key={product.id} onClick={() => handleProductClick(product)}>
             <ProductImage color={getRandomColor()}>
-              {getProductIcon(product.name)}
+              {product.imageUrl ? (
+                <img 
+                  src={product.imageUrl} 
+                  alt={product.name}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                />
+              ) : (
+                <span style={{ fontSize: '4rem', color: '#86868b' }}>📷</span>
+              )}
             </ProductImage>
             <ProductInfo>
               <ProductTitle>{product.name}</ProductTitle>
               <ProductDescription>{product.description}</ProductDescription>
               <ProductFooter>
                 <ProductPrice>${product.price.toFixed(2)}</ProductPrice>
-                <BuyButton>Buy Now</BuyButton>
+                <BuyButton onClick={(e) => handleBuyClick(e, product)}>Buy Now</BuyButton>
               </ProductFooter>
             </ProductInfo>
           </ProductCard>
         ))}
       </ProductsGrid>
+
+      {selectedProduct && (
+        <ProductDetailModal
+          product={selectedProduct}
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
+        />
+      )}
     </ProductsContainer>
   );
 }

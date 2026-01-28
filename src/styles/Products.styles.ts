@@ -73,18 +73,31 @@ export const ProductsGrid = styled.div`
 `;
 
 export const ProductCard = styled.div`
-  background: transparent;
-  transition: transform 0.2s;
+  background: white;
+  border: 1px solid #e5e5e7;
+  border-radius: 20px;
+  overflow: hidden;
+  transition: all 0.3s ease;
   cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 
   &:hover {
-    transform: translateY(-5px);
+    transform: translateY(-8px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+    border-color: #d2d2d7;
   }
   
   @media (max-width: 768px) {
+    border-radius: 16px;
+    
     &:hover {
-      transform: none;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
     }
+  }
+  
+  @media (max-width: 425px) {
+    border-radius: 14px;
   }
 `;
 
@@ -95,8 +108,17 @@ export const ProductImage = styled.div<{ color: string }>`
   align-items: center;
   justify-content: center;
   font-size: 5rem;
-  border-radius: 18px;
-  margin-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+  position: relative;
+  overflow: hidden;
+  
+  img {
+    transition: transform 0.3s ease;
+  }
+  
+  &:hover img {
+    transform: scale(1.05);
+  }
   
   @media (max-width: 1024px) {
     height: 250px;
@@ -106,14 +128,11 @@ export const ProductImage = styled.div<{ color: string }>`
   @media (max-width: 768px) {
     height: 220px;
     font-size: 4rem;
-    border-radius: 14px;
-    margin-bottom: 15px;
   }
   
   @media (max-width: 425px) {
     height: 280px;
     font-size: 5rem;
-    border-radius: 12px;
   }
   
   @media (max-width: 375px) {
@@ -128,7 +147,11 @@ export const ProductImage = styled.div<{ color: string }>`
 `;
 
 export const ProductInfo = styled.div`
-  padding: 0;
+  padding: 1.25rem 1.5rem 1.5rem;
+  
+  @media (max-width: 768px) {
+    padding: 1rem 1.25rem 1.25rem;
+  }
 `;
 
 export const ProductTitle = styled.h3`
@@ -187,25 +210,25 @@ export const BuyButton = styled.button`
   background: #0071e3;
   color: white;
   border: none;
-  padding: 8px 20px;
+  padding: 10px 24px;
   border-radius: 980px;
-  font-weight: 400;
-  font-size: 0.875rem;
+  font-weight: 500;
+  font-size: 0.9rem;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
   white-space: nowrap;
 
   &:hover {
     background: #0077ed;
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.98);
   }
   
   @media (max-width: 768px) {
-    padding: 7px 18px;
-    font-size: 0.85rem;
-  }
-  
-  @media (max-width: 425px) {
-    padding: 8px 20px;
     font-size: 0.875rem;
+    padding: 8px 20px;
   }
 `;

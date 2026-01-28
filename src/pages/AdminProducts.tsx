@@ -5,6 +5,8 @@ import styled from 'styled-components';
 import { productsAPI, ApiError } from '../services/api';
 import type { Product, CreateProductData, UpdateProductData } from '../services/api';
 import ProductModal from '../components/ProductModal';
+import ConfirmDialog from '../components/ConfirmDialog';
+import AlertDialog from '../components/AlertDialog';
 
 const PageContainer = styled.div`
   min-height: 100vh;
@@ -165,6 +167,36 @@ const Td = styled.td`
   font-size: 0.95rem;
 `;
 
+const ProductCell = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+`;
+
+const ProductThumbnail = styled.div<{ $hasImage?: boolean }>`
+  width: 50px;
+  height: 50px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #f5f5f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const ProductInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
 const ProductName = styled.div`
   font-weight: 500;
 `;
@@ -258,6 +290,18 @@ function AdminProducts() {
   const [showModal, setShowModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({ isOpen: false, title: '', message: '', onConfirm: () => {} });
+  const [alertDialog, setAlertDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    variant: 'success' | 'error' | 'warning' | 'info';
+  }>({ isOpen: false, title: '', message: '', variant: 'info' });
 
   useEffect(() => {
     if (isAdmin) {
@@ -283,9 +327,9 @@ function AdminProducts() {
     }
   };
 
-  const handleAddProduct = async (data: CreateProductData) => {
+  const handleAddProduct = async (data: CreateProductData, image?: File) => {
     try {
-      await productsAPI.create(data);
+      await productsAPI.create(data, image);
       await loadProducts();
       setShowModal(false);
     } catch (err: any) {
@@ -297,11 +341,11 @@ function AdminProducts() {
     }
   };
 
-  const handleEditProduct = async (data: UpdateProductData) => {
+  const handleEditProduct = async (data: UpdateProductData, image?: File) => {
     if (!editingProduct) return;
 
     try {
-      await productsAPI.update(editingProduct.id, data);
+      await productsAPI.update(editingProduct.id, data, image);
       await loadProducts();
       setShowModal(false);
       setEditingProduct(null);
@@ -314,10 +358,17 @@ function AdminProducts() {
     }
   };
 
-  const handleDeleteProduct = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) {
-      return;
-    }
+  const handleDeleteProduct = (id: string) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Delete Product',
+      message: 'Are you sure you want to delete this product? This action cannot be undone.',
+      onConfirm: () => confirmDeleteProduct(id),
+    });
+  };
+
+  const confirmDeleteProduct = async (id: string) => {
+    setConfirmDialog({ ...confirmDialog, isOpen: false });
 
     try {
       setDeletingId(id);
@@ -328,9 +379,19 @@ function AdminProducts() {
         logout();
         navigate('/admin/login');
       } else if (err instanceof ApiError && err.statusCode === 404) {
-        alert('Product not found');
+        setAlertDialog({
+          isOpen: true,
+          title: 'Product Not Found',
+          message: 'The product you are trying to delete could not be found.',
+          variant: 'error',
+        });
       } else {
-        alert(err.message || 'Failed to delete product');
+        setAlertDialog({
+          isOpen: true,
+          title: 'Error',
+          message: err.message || 'Failed to delete product. Please try again.',
+          variant: 'error',
+        });
       }
     } finally {
       setDeletingId(null);
@@ -416,17 +477,28 @@ function AdminProducts() {
             <Table>
               <Thead>
                 <tr>
-                  <Th>Name</Th>
-                  <Th>Description</Th>
-                  <Th>Price</Th>
-                  <Th style={{ width: '150px' }}>Actions</Th>
+                  <Th style={{ width: '40%' }}>Product</Th>
+                  <Th style={{ width: '30%' }}>Description</Th>
+                  <Th style={{ width: '15%' }}>Price</Th>
+                  <Th style={{ width: '15%' }}>Actions</Th>
                 </tr>
               </Thead>
               <Tbody>
                 {products.map((product) => (
                   <Tr key={product.id}>
                     <Td>
-                      <ProductName>{product.name}</ProductName>
+                      <ProductCell>
+                        <ProductThumbnail $hasImage={!!product.imageUrl}>
+                          {product.imageUrl ? (
+                            <img src={product.imageUrl} alt={product.name} />
+                          ) : (
+                            '📷'
+                          )}
+                        </ProductThumbnail>
+                        <ProductInfo>
+                          <ProductName>{product.name}</ProductName>
+                        </ProductInfo>
+                      </ProductCell>
                     </Td>
                     <Td>
                       <ProductDescription>
@@ -469,6 +541,25 @@ function AdminProducts() {
           onSubmit={editingProduct ? handleEditProduct : handleAddProduct}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="warning"
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+      />
+
+      <AlertDialog
+        isOpen={alertDialog.isOpen}
+        title={alertDialog.title}
+        message={alertDialog.message}
+        variant={alertDialog.variant}
+        onClose={() => setAlertDialog({ ...alertDialog, isOpen: false })}
+      />
     </PageContainer>
   );
 }

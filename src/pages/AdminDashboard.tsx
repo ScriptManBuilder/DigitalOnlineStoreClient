@@ -437,13 +437,16 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const [productsCount, setProductsCount] = useState(0);
   const [usersCount, setUsersCount] = useState(0);
+  const [totalPrice, setTotalPrice] = useState(0);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingTotalPrice, setLoadingTotalPrice] = useState(true);
 
   useEffect(() => {
     if (isAdmin) {
       loadProductsCount();
       loadUsersCount();
+      loadTotalPrice();
     }
   }, [isAdmin]);
 
@@ -468,6 +471,18 @@ function AdminDashboard() {
       console.error('Failed to load users count:', err);
     } finally {
       setLoadingUsers(false);
+    }
+  };
+
+  const loadTotalPrice = async () => {
+    try {
+      setLoadingTotalPrice(true);
+      const total = await adminAPI.getTotalPrice();
+      setTotalPrice(total);
+    } catch (err) {
+      console.error('Failed to load total price:', err);
+    } finally {
+      setLoadingTotalPrice(false);
     }
   };
 
@@ -541,7 +556,7 @@ function AdminDashboard() {
           <Card>
             <CardIcon>💰</CardIcon>
             <CardTitle>Revenue</CardTitle>
-            <CardValue>$0</CardValue>
+            <CardValue>{loadingTotalPrice ? '...' : `$${totalPrice.toFixed(2)}`}</CardValue>
             <CardLabel>Total revenue</CardLabel>
           </Card>
         </Grid>

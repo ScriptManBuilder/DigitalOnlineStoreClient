@@ -103,6 +103,94 @@ const ErrorMessage = styled.div`
   border: 1px solid #ffcdd2;
 `;
 
+const ImageUploadSection = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+`;
+
+const ImagePreview = styled.div`
+  width: 100%;
+  height: 200px;
+  border: 2px dashed #d2d2d7;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #f5f5f7;
+  position: relative;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const PlaceholderIcon = styled.div`
+  font-size: 3rem;
+  color: #86868b;
+`;
+
+const FileInputWrapper = styled.div`
+  position: relative;
+`;
+
+const FileInput = styled.input`
+  display: none;
+`;
+
+const FileButton = styled.label`
+  display: inline-block;
+  padding: 0.75rem 1.5rem;
+  background: #f5f5f7;
+  color: #1d1d1f;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.2s ease;
+  border: 1px solid #d2d2d7;
+
+  &:hover {
+    background: #e8e8ed;
+    border-color: #0071e3;
+  }
+`;
+
+const FileInfo = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #666;
+  margin-top: 0.5rem;
+`;
+
+const RemoveImageButton = styled.button`
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+  &:hover {
+    background: white;
+    transform: scale(1.1);
+  }
+`;
+
 const ButtonGroup = styled.div`
   display: flex;
   gap: 1rem;
@@ -146,7 +234,7 @@ const SecondaryButton = styled(Button)`
 interface ProductModalProps {
   product?: Product | null;
   onClose: () => void;
-  onSubmit: (data: CreateProductData & UpdateProductData) => Promise<void>;
+  onSubmit: (data: CreateProductData & UpdateProductData, image?: File) => Promise<void>;
 }
 
 function ProductModal({ product, onClose, onSubmit }: ProductModalProps) {
@@ -155,14 +243,52 @@ function ProductModal({ product, onClose, onSubmit }: ProductModalProps) {
   const [price, setPrice] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
 
   useEffect(() => {
     if (product) {
       setName(product.name);
       setDescription(product.description || '');
       setPrice(product.price.toFixed(2));
+      if (product.imageUrl) {
+        setPreviewUrl(product.imageUrl);
+      }
     }
   }, [product]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Проверка типа файла
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      setError('Please select a valid image file (JPG, PNG, GIF, or WebP)');
+      return;
+    }
+
+    // Проверка размера (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size must be less than 5MB');
+      return;
+    }
+
+    setImageFile(file);
+    setError('');
+
+    // Создаем preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setPreviewUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setPreviewUrl('');
+  };
 
   const validateForm = (): boolean => {
     if (!name.trim()) {
@@ -203,7 +329,7 @@ function ProductModal({ product, onClose, onSubmit }: ProductModalProps) {
         price: parseFloat(parseFloat(price).toFixed(2)),
       };
 
-      await onSubmit(data);
+      await onSubmit(data, imageFile || undefined);
       onClose();
     } catch (err: any) {
       setError(err.message || 'Failed to save product');
@@ -261,6 +387,48 @@ function ProductModal({ product, onClose, onSubmit }: ProductModalProps) {
               placeholder="0.00"
               disabled={isSubmitting}
             />
+          </FormGroup>
+
+          <FormGroup>
+            <Label>Product Image</Label>
+            <ImageUploadSection>
+              {previewUrl && (
+                <ImagePreview>
+                  <img src={previewUrl} alt="Product preview" />
+                  <RemoveImageButton
+                    type="button"
+                    onClick={handleRemoveImage}
+                    title="Remove image"
+                  >
+                    ×
+                  </RemoveImageButton>
+                </ImagePreview>
+              )}
+              {!previewUrl && (
+                <ImagePreview>
+                  <PlaceholderIcon>📷</PlaceholderIcon>
+                </ImagePreview>
+              )}
+              <FileInputWrapper>
+                <FileInput
+                  id="image-upload"
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                  onChange={handleImageChange}
+                  disabled={isSubmitting}
+                />
+                <FileButton htmlFor="image-upload">
+                  {previewUrl ? '🔄 Change Image' : '📁 Choose Image'}
+                </FileButton>
+                <FileInfo>
+                  {imageFile ? (
+                    <span>📦 {imageFile.name} ({(imageFile.size / 1024).toFixed(1)} KB)</span>
+                  ) : (
+                    <span>JPG, PNG, GIF or WebP (max 5MB)</span>
+                  )}
+                </FileInfo>
+              </FileInputWrapper>
+            </ImageUploadSection>
           </FormGroup>
 
           <ButtonGroup>

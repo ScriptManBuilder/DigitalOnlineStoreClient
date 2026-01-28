@@ -46,6 +46,7 @@ export interface Product {
   name: string;
   description?: string;
   price: number;
+  imageUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -190,6 +191,14 @@ export const adminAPI = {
       method: 'GET',
     });
   },
+
+  // Получить общую стоимость всех товаров (только админ)
+  getTotalPrice: async (): Promise<number> => {
+    const response = await fetchAPI<{ totalPrice: number }>('/admin/total-price', {
+      method: 'GET',
+    });
+    return response.totalPrice;
+  },
 };
 
 // === PRODUCTS ENDPOINTS ===
@@ -210,19 +219,74 @@ export const productsAPI = {
   },
 
   // Создать продукт (только админ)
-  create: async (data: CreateProductData): Promise<Product> => {
-    return fetchAPI<Product>('/products', {
+  create: async (data: CreateProductData, image?: File): Promise<Product> => {
+    const formData = new FormData();
+    formData.append('name', data.name);
+    formData.append('price', data.price.toString());
+    if (data.description) {
+      formData.append('description', data.description);
+    }
+    if (image) {
+      formData.append('image', image);
+    }
+
+    const url = `${API_BASE_URL}/products`;
+    const response = await fetch(url, {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: formData,
+      credentials: 'include',
     });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({
+        message: 'An error occurred',
+        statusCode: response.status,
+      }));
+      throw new ApiError(
+        response.status,
+        Array.isArray(error.message) ? error.message.join(', ') : error.message
+      );
+    }
+
+    return response.json();
   },
 
   // Обновить продукт (только админ)
-  update: async (id: string, data: UpdateProductData): Promise<Product> => {
-    return fetchAPI<Product>(`/products/${id}`, {
+  update: async (id: string, data: UpdateProductData, image?: File | null): Promise<Product> => {
+    const formData = new FormData();
+    
+    if (data.name !== undefined) {
+      formData.append('name', data.name);
+    }
+    if (data.description !== undefined) {
+      formData.append('description', data.description);
+    }
+    if (data.price !== undefined) {
+      formData.append('price', data.price.toString());
+    }
+    if (image) {
+      formData.append('image', image);
+    }
+
+    const url = `${API_BASE_URL}/products/${id}`;
+    const response = await fetch(url, {
       method: 'PATCH',
-      body: JSON.stringify(data),
+      body: formData,
+      credentials: 'include',
     });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({
+        message: 'An error occurred',
+        statusCode: response.status,
+      }));
+      throw new ApiError(
+        response.status,
+        Array.isArray(error.message) ? error.message.join(', ') : error.message
+      );
+    }
+
+    return response.json();
   },
 
   // Удалить продукт (только админ)

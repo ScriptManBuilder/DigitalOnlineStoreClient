@@ -62,8 +62,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = async (email: string, password: string) => {
     try {
-      const user = await authAPI.signin({ email, password });
-      setUser(user);
+      await authAPI.signin({ email, password });
+      // После логина загружаем полный профиль с description
+      const fullProfile = await authAPI.getProfile();
+      setUser(fullProfile);
     } catch (error) {
       throw error;
     }
@@ -80,8 +82,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signup = async (email: string, password: string, name?: string) => {
     try {
-      const user = await authAPI.signup({ email, password, name });
-      setUser(user);
+      await authAPI.signup({ email, password, name });
+      // После регистрации загружаем полный профиль с description
+      const fullProfile = await authAPI.getProfile();
+      setUser(fullProfile);
     } catch (error) {
       throw error;
     }
