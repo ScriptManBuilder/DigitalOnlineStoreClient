@@ -50,11 +50,20 @@ const Label = styled.label`
   color: #1d1d1f;
   font-weight: 500;
   font-size: 0.875rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 `;
 
 const Required = styled.span`
   color: #ff3b30;
   margin-left: 0.25rem;
+`;
+
+const CharCounter = styled.span<{ isOverLimit?: boolean }>`
+  font-size: 0.75rem;
+  color: ${props => props.isOverLimit ? '#ff3b30' : '#86868b'};
+  font-weight: 400;
 `;
 
 const Input = styled.input`
@@ -101,6 +110,12 @@ const ErrorMessage = styled.div`
   border-radius: 8px;
   font-size: 0.875rem;
   border: 1px solid #ffcdd2;
+`;
+
+const FieldError = styled.div`
+  color: #ff3b30;
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
 `;
 
 const ImageUploadSection = styled.div`
@@ -237,11 +252,26 @@ interface ProductModalProps {
   onSubmit: (data: CreateProductData & UpdateProductData, image?: File) => Promise<void>;
 }
 
+// Константы валидации
+const VALIDATION = {
+  NAME_MIN: 3,
+  NAME_MAX: 100,
+  DESCRIPTION_MIN: 10,
+  DESCRIPTION_MAX: 500,
+  PRICE_MIN: 0.01,
+  PRICE_MAX: 999999.99,
+};
+
 function ProductModal({ product, onClose, onSubmit }: ProductModalProps) {
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [error, setError] = useState('');
+  const [fieldErrors, setFieldErrors] = useState<{
+    name?: string;
+    description?: string;
+    price?: string;
+  }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string>('');
@@ -291,30 +321,62 @@ function ProductModal({ product, onClose, onSubmit }: ProductModalProps) {
   };
 
   const validateForm = (): boolean => {
-    if (!name.trim()) {
-      setError('Product name is required');
-      return false;
+    const errors: typeof fieldErrors = {};
+    let isValid = true;
+
+    // Валидация имени
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      errors.name = 'Product name is required';
+      isValid = false;
+    } else if (trimmedName.length < VALIDATION.NAME_MIN) {
+      errors.name = `Name must be at least ${VALIDATION.NAME_MIN} characters`;
+      isValid = false;
+    } else if (trimmedName.length > VALIDATION.NAME_MAX) {
+      errors.name = `Name must not exceed ${VALIDATION.NAME_MAX} characters`;
+      isValid = false;
     }
 
+    // Валидация описания (если заполнено)
+    const trimmedDescription = description.trim();
+    if (trimmedDescription) {
+      if (trimmedDescription.length < VALIDATION.DESCRIPTION_MIN) {
+        errors.description = `Description must be at least ${VALIDATION.DESCRIPTION_MIN} characters`;
+        isValid = false;
+      } else if (trimmedDescription.length > VALIDATION.DESCRIPTION_MAX) {
+        errors.description = `Description must not exceed ${VALIDATION.DESCRIPTION_MAX} characters`;
+        isValid = false;
+      }
+    }
+
+    // Валидация цены
     const priceNum = parseFloat(price);
-    if (!price || isNaN(priceNum) || priceNum <= 0) {
-      setError('Price must be a positive number');
-      return false;
+    if (!price || isNaN(priceNum)) {
+      errors.price = 'Price is required';
+      isValid = false;
+    } else if (priceNum < VALIDATION.PRICE_MIN) {
+      errors.price = `Price must be at least $${VALIDATION.PRICE_MIN}`;
+      isValid = false;
+    } else if (priceNum > VALIDATION.PRICE_MAX) {
+      errors.price = `Price must not exceed $${VALIDATION.PRICE_MAX.toLocaleString()}`;
+      isValid = false;
+    } else {
+      // Проверка на 2 знака после запятой
+      const decimalPart = price.split('.')[1];
+      if (decimalPart && decimalPart.length > 2) {
+        errors.price = 'Price must have at most 2 decimal places';
+        isValid = false;
+      }
     }
 
-    // Проверка на 2 знака после запятой
-    const decimalPart = price.split('.')[1];
-    if (decimalPart && decimalPart.length > 2) {
-      setError('Price must have at most 2 decimal places');
-      return false;
-    }
-
-    return true;
+    setFieldErrors(errors);
+    return isValid;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setFieldErrors({});
 
     if (!validateForm()) {
       return;
@@ -353,40 +415,76 @@ function ProductModal({ product, onClose, onSubmit }: ProductModalProps) {
 
           <FormGroup>
             <Label>
-              Product Name<Required>*</Required>
+              <span>
+                Product Name<Required>*</Required>
+              </span>
+              <CharCounter isOverLimit={name.length > VALIDATION.NAME_MAX}>
+                {name.length}/{VALIDATION.NAME_MAX}
+              </CharCounter>
             </Label>
             <Input
               type="text"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (fieldErrors.name) {
+                  setFieldErrors(prev => ({ ...prev, name: undefined }));
+                }
+              }}
               placeholder="Enter product name"
               disabled={isSubmitting}
+              maxLength={VALIDATION.NAME_MAX + 10}
             />
-          </FormGroup>
-
-          <FormGroup>
-            <Label>Description</Label>
-            <Textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter product description (optional)"
-              disabled={isSubmitting}
-            />
+            {fieldErrors.name && <FieldError>{fieldErrors.name}</FieldError>}
           </FormGroup>
 
           <FormGroup>
             <Label>
-              Price ($)<Required>*</Required>
+              <span>Description</span>
+              <CharCounter isOverLimit={description.length > VALIDATION.DESCRIPTION_MAX}>
+                {description.length}/{VALIDATION.DESCRIPTION_MAX}
+              </CharCounter>
+            </Label>
+            <Textarea
+              value={description}
+              onChange={(e) => {
+                setDescription(e.target.value);
+                if (fieldErrors.description) {
+                  setFieldErrors(prev => ({ ...prev, description: undefined }));
+                }
+              }}
+              placeholder={`Enter product description (min ${VALIDATION.DESCRIPTION_MIN} characters, optional)`}
+              disabled={isSubmitting}
+              maxLength={VALIDATION.DESCRIPTION_MAX + 10}
+            />
+            {fieldErrors.description && <FieldError>{fieldErrors.description}</FieldError>}
+          </FormGroup>
+
+          <FormGroup>
+            <Label>
+              <span>
+                Price ($)<Required>*</Required>
+              </span>
+              <CharCounter>
+                ${VALIDATION.PRICE_MIN} - ${VALIDATION.PRICE_MAX.toLocaleString()}
+              </CharCounter>
             </Label>
             <Input
               type="number"
               step="0.01"
-              min="0.01"
+              min={VALIDATION.PRICE_MIN}
+              max={VALIDATION.PRICE_MAX}
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={(e) => {
+                setPrice(e.target.value);
+                if (fieldErrors.price) {
+                  setFieldErrors(prev => ({ ...prev, price: undefined }));
+                }
+              }}
               placeholder="0.00"
               disabled={isSubmitting}
             />
+            {fieldErrors.price && <FieldError>{fieldErrors.price}</FieldError>}
           </FormGroup>
 
           <FormGroup>

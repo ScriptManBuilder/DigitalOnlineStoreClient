@@ -7,85 +7,29 @@ import type { Product, CreateProductData, UpdateProductData } from '../services/
 import ProductModal from '../components/ProductModal';
 import ConfirmDialog from '../components/ConfirmDialog';
 import AlertDialog from '../components/AlertDialog';
+import AdminHeader from '../components/AdminHeader';
 
 const PageContainer = styled.div`
   min-height: 100vh;
-  background: #f8f9fa;
-`;
-
-const Header = styled.header`
-  background: white;
-  border-bottom: 1px solid #e0e0e0;
-  padding: 0;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-`;
-
-const HeaderContent = styled.div`
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.25rem 2rem;
-`;
-
-const Logo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-`;
-
-const Title = styled.h1`
-  margin: 0;
-  font-size: 1.5rem;
-  color: #1d1d1f;
-  font-weight: 600;
-  
-  span {
-    font-size: 1.75rem;
-    margin-right: 0.5rem;
-  }
-`;
-
-const Subtitle = styled.span`
-  color: #666;
-  font-size: 0.875rem;
-  font-weight: 400;
-  margin-left: 0.75rem;
-  padding-left: 0.75rem;
-  border-left: 2px solid #e0e0e0;
-`;
-
-const HeaderActions = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-`;
-
-const BackButton = styled.button`
-  background: none;
-  color: #0071e3;
-  border: 1px solid #0071e3;
-  padding: 0.5rem 1.25rem;
-  border-radius: 980px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.875rem;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: #0071e3;
-    color: white;
-  }
+  background: #f5f7fa;
 `;
 
 const Content = styled.main`
   max-width: 1400px;
   margin: 0 auto;
   padding: 2.5rem 2rem;
+  
+  @media (max-width: 1024px) {
+    padding: 2rem 1.5rem;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 1.5rem 1rem;
+  }
+  
+  @media (max-width: 425px) {
+    padding: 1rem 0.75rem;
+  }
 `;
 
 const PageHeader = styled.div`
@@ -93,6 +37,12 @@ const PageHeader = styled.div`
   justify-content: space-between;
   align-items: center;
   margin-bottom: 2rem;
+  gap: 1rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: stretch;
+  }
 `;
 
 const PageTitle = styled.h2`
@@ -100,6 +50,14 @@ const PageTitle = styled.h2`
   font-size: 2rem;
   color: #1d1d1f;
   font-weight: 600;
+  
+  @media (max-width: 768px) {
+    font-size: 1.75rem;
+  }
+  
+  @media (max-width: 425px) {
+    font-size: 1.5rem;
+  }
 `;
 
 const AddButton = styled.button`
@@ -114,11 +72,19 @@ const AddButton = styled.button`
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.5rem;
+  white-space: nowrap;
 
   &:hover {
     background: #0077ed;
     transform: translateY(-1px);
+  }
+  
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 0.75rem 1.25rem;
+    font-size: 0.9375rem;
   }
 `;
 
@@ -127,11 +93,21 @@ const TableContainer = styled.div`
   border-radius: 12px;
   border: 1px solid #e0e0e0;
   overflow: hidden;
+  
+  @media (max-width: 768px) {
+    border: none;
+    background: transparent;
+    overflow: visible;
+  }
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
 `;
 
 const Thead = styled.thead`
@@ -253,16 +229,28 @@ const EmptyState = styled.div`
   text-align: center;
   padding: 4rem 2rem;
   color: #666;
+  
+  @media (max-width: 768px) {
+    padding: 3rem 1.5rem;
+  }
 `;
 
 const EmptyIcon = styled.div`
   font-size: 4rem;
   margin-bottom: 1rem;
+  
+  @media (max-width: 768px) {
+    font-size: 3rem;
+  }
 `;
 
 const EmptyText = styled.p`
   margin: 0 0 1.5rem 0;
   font-size: 1.1rem;
+  
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
 `;
 
 const LoadingState = styled.div`
@@ -270,15 +258,90 @@ const LoadingState = styled.div`
   padding: 4rem 2rem;
   color: #666;
   font-size: 1.1rem;
+  
+  @media (max-width: 768px) {
+    padding: 3rem 1.5rem;
+    font-size: 1rem;
+  }
 `;
 
 const ErrorState = styled.div`
-  background: #fff3f3;
-  color: #d32f2f;
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-  border: 1px solid #ffcdd2;
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #ff3b30;
+  font-size: 1.1rem;
+  
+  @media (max-width: 768px) {
+    padding: 3rem 1.5rem;
+    font-size: 1rem;
+  }
+`;
+
+// Mobile Cards
+const MobileCardsContainer = styled.div`
+  display: none;
+  
+  @media (max-width: 768px) {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+`;
+
+const MobileCard = styled.div`
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+`;
+
+const MobileCardHeader = styled.div`
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+`;
+
+const MobileCardInfo = styled.div`
+  flex: 1;
+  min-width: 0;
+`;
+
+const MobileCardTitle = styled.div`
+  font-weight: 600;
+  font-size: 1rem;
+  color: #1d1d1f;
+  margin-bottom: 0.25rem;
+`;
+
+const MobileCardDesc = styled.div`
+  color: #666;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+`;
+
+const MobileCardPrice = styled.div`
+  font-weight: 600;
+  color: #0071e3;
+  font-size: 1.125rem;
+`;
+
+const MobileCardActions = styled.div`
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #f0f0f0;
+  
+  button {
+    flex: 1;
+  }
 `;
 
 function AdminProducts() {
@@ -429,22 +492,7 @@ function AdminProducts() {
 
   return (
     <PageContainer>
-      <Header>
-        <HeaderContent>
-          <Logo>
-            <Title>
-              <span>🛒</span>
-              Digital Shop
-              <Subtitle>Product Management</Subtitle>
-            </Title>
-          </Logo>
-          <HeaderActions>
-            <BackButton onClick={() => navigate('/admin/dashboard')}>
-              ← Back to Dashboard
-            </BackButton>
-          </HeaderActions>
-        </HeaderContent>
-      </Header>
+      <AdminHeader title="Product Management" icon="📦" activePage="products" />
 
       <Content>
         <PageHeader>
@@ -530,6 +578,46 @@ function AdminProducts() {
                 ))}
               </Tbody>
             </Table>
+            
+            {/* Mobile Cards View */}
+            <MobileCardsContainer>
+              {products.map((product) => (
+                <MobileCard key={product.id}>
+                  <MobileCardHeader>
+                    <ProductThumbnail $hasImage={!!product.imageUrl}>
+                      {product.imageUrl ? (
+                        <img src={product.imageUrl} alt={product.name} />
+                      ) : (
+                        '📷'
+                      )}
+                    </ProductThumbnail>
+                    <MobileCardInfo>
+                      <MobileCardTitle>{product.name}</MobileCardTitle>
+                      <MobileCardDesc>
+                        {product.description || 'No description'}
+                      </MobileCardDesc>
+                    </MobileCardInfo>
+                  </MobileCardHeader>
+                  <MobileCardPrice>${product.price.toFixed(2)}</MobileCardPrice>
+                  <MobileCardActions>
+                    <IconButton
+                      onClick={() => openEditModal(product)}
+                      title="Edit"
+                    >
+                      ✏️ Edit
+                    </IconButton>
+                    <IconButton
+                      className="delete"
+                      onClick={() => handleDeleteProduct(product.id)}
+                      disabled={deletingId === product.id}
+                      title="Delete"
+                    >
+                      🗑️ {deletingId === product.id ? '...' : 'Delete'}
+                    </IconButton>
+                  </MobileCardActions>
+                </MobileCard>
+              ))}
+            </MobileCardsContainer>
           </TableContainer>
         )}
       </Content>

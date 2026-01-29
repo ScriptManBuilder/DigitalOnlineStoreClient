@@ -2,141 +2,12 @@ import { useAuth } from '../context/AuthContext';
 import { Navigate, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { useState, useEffect } from 'react';
-import { productsAPI, adminAPI } from '../services/api';
+import { productsAPI, adminAPI, adminOrdersAPI } from '../services/api';
+import AdminHeader from '../components/AdminHeader';
 
 const DashboardContainer = styled.div`
   min-height: 100vh;
   background: #f5f7fa;
-`;
-
-const Header = styled.header`
-  background: #1a1d29;
-  border-bottom: none;
-  padding: 0;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-`;
-
-const HeaderContent = styled.div`
-  max-width: 1400px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 2rem;
-  
-  @media (max-width: 768px) {
-    padding: 0.875rem 1rem;
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: flex-start;
-  }
-  
-  @media (max-width: 425px) {
-    padding: 0.75rem 0.875rem;
-  }
-`;
-
-const Logo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: space-between;
-  }
-`;
-
-const Title = styled.h1`
-  margin: 0;
-  font-size: 1.25rem;
-  color: #ffffff;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  
-  span {
-    font-size: 1.5rem;
-  }
-  
-  @media (max-width: 768px) {
-    font-size: 1.1rem;
-    
-    span {
-      font-size: 1.25rem;
-    }
-  }
-  
-  @media (max-width: 425px) {
-    font-size: 1rem;
-    
-    span {
-      font-size: 1.125rem;
-    }
-  }
-`;
-
-const Subtitle = styled.span`
-  color: #a0aec0;
-  font-size: 0.75rem;
-  font-weight: 400;
-  margin-left: 0.5rem;
-  padding-left: 0.5rem;
-  border-left: 1px solid #4a5568;
-  
-  @media (max-width: 768px) {
-    display: none;
-  }
-`;
-
-const UserInfo = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
-  
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: space-between;
-  }
-`;
-
-const UserName = styled.span`
-  color: #e2e8f0;
-  font-weight: 500;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  
-  @media (max-width: 425px) {
-    font-size: 0.8rem;
-  }
-`;
-
-const LogoutButton = styled.button`
-  background: #2d3748;
-  color: #ffffff;
-  border: 1px solid #4a5568;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 0.8125rem;
-  transition: all 0.2s ease;
-
-  &:hover {
-    background: #4a5568;
-    border-color: #718096;
-  }
-  
-  @media (max-width: 425px) {
-    padding: 0.4rem 0.75rem;
-    font-size: 0.75rem;
-  }
 `;
 
 const Content = styled.main`
@@ -437,15 +308,18 @@ function AdminDashboard() {
   const navigate = useNavigate();
   const [productsCount, setProductsCount] = useState(0);
   const [usersCount, setUsersCount] = useState(0);
+  const [ordersCount, setOrdersCount] = useState(0);
   const [totalPrice, setTotalPrice] = useState(0);
   const [loadingProducts, setLoadingProducts] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [loadingOrders, setLoadingOrders] = useState(true);
   const [loadingTotalPrice, setLoadingTotalPrice] = useState(true);
 
   useEffect(() => {
     if (isAdmin) {
       loadProductsCount();
       loadUsersCount();
+      loadOrdersCount();
       loadTotalPrice();
     }
   }, [isAdmin]);
@@ -474,6 +348,18 @@ function AdminDashboard() {
     }
   };
 
+  const loadOrdersCount = async () => {
+    try {
+      setLoadingOrders(true);
+      const orders = await adminOrdersAPI.getAll();
+      setOrdersCount(orders.length);
+    } catch (err) {
+      console.error('Failed to load orders count:', err);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
   const loadTotalPrice = async () => {
     try {
       setLoadingTotalPrice(true);
@@ -486,17 +372,16 @@ function AdminDashboard() {
     }
   };
 
-  const handleLogout = async () => {
-    await logout('admin'); // Явно указываем тип logout
-    navigate('/admin/login'); // Редирект на страницу входа админа
-  };
-
   const handleNavigateToProducts = () => {
     navigate('/admin/products');
   };
 
   const handleNavigateToUsers = () => {
     navigate('/admin/users');
+  };
+
+  const handleNavigateToOrders = () => {
+    navigate('/admin/orders');
   };
 
   // Если не администратор, редирект на страницу входа
@@ -506,21 +391,7 @@ function AdminDashboard() {
 
   return (
     <DashboardContainer>
-      <Header>
-        <HeaderContent>
-          <Logo>
-            <Title>
-              <span>🛒</span>
-              Digital Shop
-              <Subtitle>Admin Panel</Subtitle>
-            </Title>
-          </Logo>
-          <UserInfo>
-            <UserName>👤 {admin?.name || admin?.username}</UserName>
-            <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
-          </UserInfo>
-        </HeaderContent>
-      </Header>
+      <AdminHeader activePage="dashboard" />
 
       <Content>
         <WelcomeSection>
@@ -542,7 +413,7 @@ function AdminDashboard() {
           <Card>
             <CardIcon>🛍️</CardIcon>
             <CardTitle>Total Orders</CardTitle>
-            <CardValue>0</CardValue>
+            <CardValue>{loadingOrders ? '...' : ordersCount}</CardValue>
             <CardLabel>Orders received</CardLabel>
           </Card>
 
@@ -588,11 +459,11 @@ function AdminDashboard() {
               </ActionText>
             </ActionButton>
 
-            <ActionButton>
-              <ActionIcon>⚙️</ActionIcon>
+            <ActionButton onClick={handleNavigateToOrders}>
+              <ActionIcon>📦</ActionIcon>
               <ActionText>
-                <ActionTitle>Settings</ActionTitle>
-                <ActionDesc>Configure store</ActionDesc>
+                <ActionTitle>Orders</ActionTitle>
+                <ActionDesc>Manage orders</ActionDesc>
               </ActionText>
             </ActionButton>
           </QuickActionsGrid>

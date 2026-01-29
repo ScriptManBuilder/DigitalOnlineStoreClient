@@ -10,6 +10,10 @@ const AdminLoginContainer = styled.div`
   justify-content: center;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   padding: 20px;
+  
+  @media (max-width: 425px) {
+    padding: 16px;
+  }
 `;
 
 const LoginBox = styled.div`
@@ -19,6 +23,16 @@ const LoginBox = styled.div`
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   width: 100%;
   max-width: 400px;
+  
+  @media (max-width: 768px) {
+    padding: 2.5rem;
+    border-radius: 10px;
+  }
+  
+  @media (max-width: 425px) {
+    padding: 2rem;
+    max-width: 100%;
+  }
 `;
 
 const Title = styled.h1`
@@ -26,6 +40,14 @@ const Title = styled.h1`
   color: #333;
   margin-bottom: 0.5rem;
   font-size: 2rem;
+  
+  @media (max-width: 768px) {
+    font-size: 1.75rem;
+  }
+  
+  @media (max-width: 425px) {
+    font-size: 1.5rem;
+  }
 `;
 
 const Subtitle = styled.p`
@@ -33,12 +55,21 @@ const Subtitle = styled.p`
   color: #666;
   margin-bottom: 2rem;
   font-size: 0.9rem;
+  
+  @media (max-width: 425px) {
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
 `;
 
 const Form = styled.form`
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  
+  @media (max-width: 425px) {
+    gap: 1.25rem;
+  }
 `;
 
 const InputGroup = styled.div`

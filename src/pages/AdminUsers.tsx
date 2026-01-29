@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { adminAPI } from '../services/api';
 import type { User } from '../services/api';
+import AdminHeader from '../components/AdminHeader';
 
 const Container = styled.div`
   min-height: 100vh;
@@ -363,16 +364,7 @@ function AdminUsers() {
 
   return (
     <Container>
-      <Header>
-        <HeaderContent>
-          <HeaderLeft>
-            <BackButton onClick={() => navigate('/admin/dashboard')}>
-              ← Back
-            </BackButton>
-            <Title>Users Management</Title>
-          </HeaderLeft>
-        </HeaderContent>
-      </Header>
+      <AdminHeader title="Users Management" icon="👥" activePage="users" />
 
       <Content>
         <PageHeader>

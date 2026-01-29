@@ -8,6 +8,51 @@ const ProfileContainer = styled.div`
   margin: 80px auto;
   padding: 2rem;
   min-height: calc(100vh - 200px);
+  
+  @media (max-width: 1024px) {
+    margin: 60px auto;
+    padding: 1.5rem;
+  }
+  
+  @media (max-width: 768px) {
+    margin: 40px auto;
+    padding: 1rem;
+  }
+  
+  @media (max-width: 425px) {
+    margin: 20px auto;
+    padding: 0.75rem;
+  }
+`;
+
+const BackButton = styled.button`
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  margin-bottom: 1.5rem;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  color: #666;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.3s;
+
+  &:hover {
+    background: #f5f5f5;
+    border-color: #667eea;
+    color: #667eea;
+    transform: translateX(-4px);
+  }
+
+  svg {
+    transition: transform 0.3s;
+  }
+
+  &:hover svg {
+    transform: translateX(-2px);
+  }
 `;
 
 const ProfileCard = styled.div`
@@ -15,6 +60,16 @@ const ProfileCard = styled.div`
   border-radius: 12px;
   padding: 2rem;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  
+  @media (max-width: 768px) {
+    padding: 1.5rem;
+    border-radius: 10px;
+  }
+  
+  @media (max-width: 425px) {
+    padding: 1rem;
+    border-radius: 8px;
+  }
 `;
 
 const ProfileHeader = styled.div`
@@ -24,6 +79,18 @@ const ProfileHeader = styled.div`
   margin-bottom: 2rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid #e0e0e0;
+  
+  @media (max-width: 768px) {
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+  
+  @media (max-width: 425px) {
+    flex-direction: column;
+    text-align: center;
+    gap: 1rem;
+  }
 `;
 
 const Avatar = styled.div`
@@ -37,6 +104,19 @@ const Avatar = styled.div`
   font-size: 2.5rem;
   color: white;
   font-weight: bold;
+  flex-shrink: 0;
+  
+  @media (max-width: 768px) {
+    width: 80px;
+    height: 80px;
+    font-size: 2rem;
+  }
+  
+  @media (max-width: 425px) {
+    width: 70px;
+    height: 70px;
+    font-size: 1.75rem;
+  }
 `;
 
 const ProfileInfo = styled.div`
@@ -47,12 +127,29 @@ const ProfileName = styled.h1`
   font-size: 2rem;
   margin: 0 0 0.5rem 0;
   color: #333;
+  
+  @media (max-width: 768px) {
+    font-size: 1.75rem;
+  }
+  
+  @media (max-width: 425px) {
+    font-size: 1.5rem;
+  }
 `;
 
 const ProfileEmail = styled.p`
   color: #666;
   margin: 0;
   font-size: 1rem;
+  word-break: break-all;
+  
+  @media (max-width: 768px) {
+    font-size: 0.9375rem;
+  }
+  
+  @media (max-width: 425px) {
+    font-size: 0.875rem;
+  }
 `;
 
 const Section = styled.div`
@@ -63,6 +160,14 @@ const SectionTitle = styled.h2`
   font-size: 1.5rem;
   margin-bottom: 1rem;
   color: #333;
+  
+  @media (max-width: 768px) {
+    font-size: 1.375rem;
+  }
+  
+  @media (max-width: 425px) {
+    font-size: 1.25rem;
+  }
 `;
 
 const Form = styled.form`
@@ -126,6 +231,11 @@ const ButtonGroup = styled.div`
   display: flex;
   gap: 1rem;
   margin-top: 1rem;
+  
+  @media (max-width: 425px) {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
 `;
 
 const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
@@ -136,6 +246,17 @@ const Button = styled.button<{ variant?: 'primary' | 'secondary' }>`
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s;
+  
+  @media (max-width: 768px) {
+    padding: 0.625rem 1.5rem;
+    font-size: 0.9375rem;
+  }
+  
+  @media (max-width: 425px) {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    width: 100%;
+  }
 
   ${props => props.variant === 'primary' ? `
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -262,6 +383,12 @@ function Profile() {
 
   return (
     <ProfileContainer>
+      <BackButton onClick={() => navigate(-1)}>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+      </BackButton>
       <ProfileCard>
         <ProfileHeader>
           <Avatar>{getInitials(user.name)}</Avatar>
@@ -313,13 +440,22 @@ function Profile() {
 
             <ButtonGroup>
               {!isEditing ? (
-                <Button 
-                  type="button" 
-                  variant="primary"
-                  onClick={handleEditClick}
-                >
-                  Edit Profile
-                </Button>
+                <>
+                  <Button 
+                    type="button" 
+                    variant="primary"
+                    onClick={handleEditClick}
+                  >
+                    Edit Profile
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="secondary"
+                    onClick={() => navigate('/orders')}
+                  >
+                    My Orders
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button 

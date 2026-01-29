@@ -297,5 +297,145 @@ export const productsAPI = {
   },
 };
 
+// === CART TYPES ===
+
+export interface CartItem {
+  id: string;
+  productId: string;
+  productName: string;
+  productImageUrl: string | null;
+  productPrice: number;
+  quantity: number;
+  totalPrice: number;
+}
+
+export interface Cart {
+  id: string;
+  items: CartItem[];
+  totalItems: number;
+  totalPrice: number;
+}
+
+// === CART ENDPOINTS ===
+
+export const cartAPI = {
+  // Получить корзину
+  getCart: async (): Promise<Cart> => {
+    return fetchAPI<Cart>('/cart', {
+      method: 'GET',
+    });
+  },
+
+  // Добавить товар в корзину
+  addItem: async (productId: string, quantity: number = 1): Promise<Cart> => {
+    return fetchAPI<Cart>('/cart/add', {
+      method: 'POST',
+      body: JSON.stringify({ productId, quantity }),
+    });
+  },
+
+  // Обновить количество товара
+  updateItem: async (itemId: string, quantity: number): Promise<Cart> => {
+    return fetchAPI<Cart>(`/cart/item/${itemId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ quantity }),
+    });
+  },
+
+  // Удалить товар из корзины
+  removeItem: async (itemId: string): Promise<Cart> => {
+    return fetchAPI<Cart>(`/cart/item/${itemId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Очистить корзину
+  clearCart: async (): Promise<{ message: string }> => {
+    return fetchAPI<{ message: string }>('/cart/clear', {
+      method: 'DELETE',
+    });
+  },
+};
+
+// === ORDER TYPES ===
+
+export type OrderStatus = 'PROCESSING' | 'ACCEPTED' | 'SHIPPED' | 'DELIVERED';
+
+export interface OrderItem {
+  id: string;
+  productId: string;
+  productName: string;
+  productImageUrl: string | null;
+  productPrice: number;
+  quantity: number;
+  totalPrice: number;
+}
+
+export interface Order {
+  id: string;
+  status: OrderStatus;
+  statusText: string;
+  totalPrice: number;
+  createdAt: string;
+  items: OrderItem[];
+  user?: {
+    id: string;
+    email: string;
+    name: string;
+  };
+}
+
+// === ORDERS ENDPOINTS ===
+
+export const ordersAPI = {
+  // Оформить заказ из корзины
+  checkout: async (): Promise<Order> => {
+    return fetchAPI<Order>('/orders/checkout', {
+      method: 'POST',
+    });
+  },
+
+  // Получить все свои заказы
+  getAll: async (): Promise<Order[]> => {
+    return fetchAPI<Order[]>('/orders', {
+      method: 'GET',
+    });
+  },
+
+  // Получить конкретный заказ
+  getOne: async (orderId: string): Promise<Order> => {
+    return fetchAPI<Order>(`/orders/${orderId}`, {
+      method: 'GET',
+    });
+  },
+};
+
+// === ADMIN ORDERS ENDPOINTS ===
+
+export const adminOrdersAPI = {
+  // Получить все заказы (с фильтрацией по статусу)
+  getAll: async (status?: OrderStatus): Promise<Order[]> => {
+    const query = status ? `?status=${status}` : '';
+    return fetchAPI<Order[]>(`/admin/orders${query}`, {
+      method: 'GET',
+    });
+  },
+
+  // Получить конкретный заказ
+  getOne: async (orderId: string): Promise<Order> => {
+    return fetchAPI<Order>(`/admin/orders/${orderId}`, {
+      method: 'GET',
+    });
+  },
+
+  // Изменить статус заказа
+  updateStatus: async (orderId: string, status: OrderStatus): Promise<Order> => {
+    return fetchAPI<Order>(`/admin/orders/${orderId}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+  },
+};
+
 // Экспортируем ApiError для обработки ошибок
 export { ApiError };
